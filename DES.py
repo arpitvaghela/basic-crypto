@@ -33,7 +33,7 @@ def generate_bit(text: str) -> List[str]:
 
 
 def intTObin(i: int) -> List[str]:
-    """ result of s_boxes are extended to 4 bits 
+    """ result of s_boxes are extended to 4 bits
     """
     s = bin(i)
     l = []
@@ -118,7 +118,7 @@ def strList(list1: List[str]) -> str:
 
 def binList(l: List[str]) -> int:
     """
-    convert l:List[str] to int for usage S_box 
+    convert l:List[str] to int for usage S_box
     """
     for i in range(len(l)):
         l[i] = str(l[i])
@@ -191,7 +191,7 @@ def xor_list(L1: list, L2: list) -> list:
 
 def add_space(plaintext: str) -> str:
     """
-    add spaces to plaintext if len(plaintext)%8 > 0 
+    add spaces to plaintext if len(plaintext)%8 > 0
     """
     if len(plaintext) % 8 > 0:
         for _ in range(8 - len(plaintext) % 8):
