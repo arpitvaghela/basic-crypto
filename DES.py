@@ -199,10 +199,20 @@ def add_space(plaintext: str) -> str:
     return plaintext
 
 
-def DES_encrypt(plaintext, key):
+def converttext(plaintext):
+    return plaintext
+
+
+def DES_encrypt(plaintext, key, binary_input: bool = False):
     subkeys = key_generation(key)
-    plaintext = add_space(plaintext)
-    plaintext = generate_bit(plaintext)
+    if not binary_input:
+        plaintext = add_space(plaintext)
+        plaintext = generate_bit(plaintext)
+    else:
+        plain_list = []
+        for x in plaintext:
+            plain_list.append(x)
+        plaintext = plain_list
     blocks = []
     #create blocks
     for i in range(len(plaintext) // 64):
@@ -230,7 +240,7 @@ def DES_encrypt(plaintext, key):
     return encrypt_blocks
 
 
-def DES_decrypt(crypt, key):
+def DES_decrypt(crypt, key, binary_output: bool = False):
     subkeys = key_generation(key)
     blocks = []
     for i in range(len(crypt) // 64):
@@ -258,7 +268,10 @@ def DES_decrypt(crypt, key):
         #print('D_IP_inv:')
         #print(strList(block), len(block))
         #print(type(block[0]))
-        plaintext = plaintext + backToString(strList(block))[2:-1]
+        if not binary_output:
+            plaintext = plaintext + backToString(strList(block))[2:-1]
+        else:
+            plaintext = plaintext + strList(block)
     return plaintext
 
 
@@ -272,9 +285,24 @@ def backToString(s: str) -> str:
     return str(bytes(I_str))
 
 
+def DES3_encrypt(plaintext, key1, key2, key3):
+    return DES_encrypt(DES_decrypt(DES_encrypt(plaintext, key1), key2, True),
+                       key3, True)
+
+
+def DES3_decrypt(e_text, key1, key2, key3):
+    return DES_decrypt(
+        DES_encrypt(DES_decrypt(e_text, key3, True), key2, True), key1)
+
+
 if __name__ == "__main__":
-    print('E_text', DES_encrypt('I\'m Feeling Lucky!', '42234abc1'))
-    print(
-        DES_decrypt(DES_encrypt('I\'m Feeling Lucky!', '42234abc1'),
-                    '42234abc1'))
+    #print('E_text', DES_encrypt('I\'m Feeling Lucky!', '42234abc1'))
+    #print(
+    #    DES_decrypt(DES_encrypt('I\'m Feeling Lucky!', '42234abc1'),
+    #                '42234abc1'), )
+    e_text = DES3_encrypt('Hello, World!', 11111111, 22222222, 33333333)
+
+    d1 = DES3_decrypt(e_text, 33333333, 22222222, 11111111)
+    print(e_text)
+    print(d1)
     #print(generate_bit('abc'), len(generate_bit('abc')))
