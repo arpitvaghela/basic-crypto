@@ -258,7 +258,7 @@ def DES_decrypt(crypt, key):
         #print('D_IP_inv:')
         #print(strList(block), len(block))
         #print(type(block[0]))
-        plaintext = plaintext + backToString(strList(block))
+        plaintext = plaintext + backToString(strList(block))[2:-1]
     return plaintext
 
 
@@ -269,11 +269,12 @@ def backToString(s: str) -> str:
     I_str = []
     for i in range(len(s) // 8):
         I_str.append(int(s[i * 8:(i + 1) * 8], 2))
-    return str(bytes(I_str), 'utf-8')
+    return str(bytes(I_str))
 
 
 if __name__ == "__main__":
+    print('E_text', DES_encrypt('I\'m Feeling Lucky!', '42234abc1'))
     print(
-        DES_decrypt(DES_encrypt('I\'m Feeling Lucky!', 113234234543234),
-                    113234234543234))
+        DES_decrypt(DES_encrypt('I\'m Feeling Lucky!', '42234abc1'),
+                    '42234abc1'))
     #print(generate_bit('abc'), len(generate_bit('abc')))
