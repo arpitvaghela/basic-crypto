@@ -295,14 +295,47 @@ def DES3_decrypt(e_text, key1, key2, key3):
         DES_encrypt(DES_decrypt(e_text, key3, True), key2, True), key1)
 
 
+def DESX_xor(text, key, after_DESX_encrypt: bool = False):
+    key = strtobin_list(generate_bit(key))[:64]
+    if after_DESX_encrypt:
+        b_text = []
+        for x in text:
+            b_text.append(int(x))
+    else:
+        b_text = strtobin_list(generate_bit(text))
+
+    final_text = ''
+    for i in range(len(b_text) // 64):
+        x1 = xor_list(b_text[i * 64:(i + 1) * 64], key)
+        for x in x1:
+            final_text = final_text + str(x)
+    return final_text
+
+
+def DESX_encrypt(plaintext, key0, key1, key2):
+    plaintext = add_space(plaintext)
+    final_plaintext = DESX_xor(plaintext, key0)
+    e_text = DES_encrypt(final_plaintext, key1, True)
+    final_e_text = DESX_xor(e_text, key2, True)
+    #print(final_e_text, len(final_e_text))
+    return final_e_text
+
+
+def DESX_decrypt(e_text, key0, key1, key2):
+    f_e_text = DESX_xor(e_text, key2, True)
+    plaintest = DES_decrypt(f_e_text, key1, True)
+    f_plaintext = DESX_xor(plaintest, key0, True)
+    print(backToString(f_plaintext)[2:-1])
+
+
 if __name__ == "__main__":
     #print('E_text', DES_encrypt('I\'m Feeling Lucky!', '42234abc1'))
     #print(
     #    DES_decrypt(DES_encrypt('I\'m Feeling Lucky!', '42234abc1'),
     #                '42234abc1'), )
-    e_text = DES3_encrypt('Hello, World!', 11111111, 22222222, 33333333)
-
-    d1 = DES3_decrypt(e_text, 33333333, 22222222, 11111111)
-    print(e_text)
-    print(d1)
+    x = DESX_encrypt('Hello, World!', 11111111, 22222222, 33333333)
+    DESX_decrypt(x, 11111111, 22222222, 33333333)
+    #d1 = DES3_decrypt(e_text, 33333333, 22222222, 11111111)
+    #print(e_text)
+    #print(d1)
     #print(generate_bit('abc'), len(generate_bit('abc')))
