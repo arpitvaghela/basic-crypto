@@ -33,19 +33,19 @@ def generate_bit(text: str) -> List[str]:
 
 
 def readFile(path: str):
-    file = open(path, 'rb')
-    b_file = list(file.read())
-    b_text = []
-    for x in b_file:
-        b = bin(x)[2:]
-        if len(b) < 8:
-            for _ in range(8 - len(b)):
-                b = '0' + b
-        #print(len(b), b)
-        byte = list(b)
-        for bit in byte:
-            b_text.append(bit)
-    return b_text
+    with open(path, 'rb') as file:
+        b_file = list(file.read())
+        b_text = []
+        for x in b_file:
+            b = bin(x)[2:]
+            if len(b) < 8:
+                for _ in range(8 - len(b)):
+                    b = '0' + b
+            #print(len(b), b)
+            byte = list(b)
+            for bit in byte:
+                b_text.append(bit)
+        return b_text
 
 
 def intTObin(i: int) -> List[str]:
@@ -349,16 +349,16 @@ def DESX_decrypt(e_text, key0, key1, key2):
 
 def DES_encrypt_file(path, key, outfilename='a.out'):
     e = DES_encrypt(readFile(path), key, True)
-    file = open(outfilename, 'wb')
-    file.write(backTobytes(e))
-    file.close()
+    with open(outfilename, 'wb') as file:
+        file.write(backTobytes(e))
+    # file.close()
 
 
 def DES_decrypt_file(path, key, outfilename):
     p = DES_decrypt(readFile(path), key, True)
-    file = open(outfilename, 'wb')
-    file.write(backTobytes(p))
-    file.close()
+    with open(outfilename, 'wb') as file:
+        file.write(backTobytes(p))
+    # file.close()
 
 
 if __name__ == "__main__":
@@ -372,7 +372,5 @@ if __name__ == "__main__":
     #print(e_text)
     #print(d1)
     #print(generate_bit('abc'), len(generate_bit('abc')))
-    #DES_encrypt_file(
-    #    './evolving_google_identity_2x.max-4000x2000.jpegquality-90.jpg',
-    #    11111111)
+    #DES_encrypt_file('./download.png', 11111111)
     #DES_decrypt_file('./a.out', 11111111, 'out.jpg')
