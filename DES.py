@@ -32,6 +32,22 @@ def generate_bit(text: str) -> List[str]:
     return b_text
 
 
+def readFile(path: str):
+    file = open(path, 'rb')
+    b_file = list(file.read())
+    b_text = []
+    for x in b_file:
+        b = bin(x)[2:]
+        if len(b) < 8:
+            for _ in range(8 - len(b)):
+                b = '0' + b
+        #print(len(b), b)
+        byte = list(b)
+        for bit in byte:
+            b_text.append(bit)
+    return b_text
+
+
 def intTObin(i: int) -> List[str]:
     """ result of s_boxes are extended to 4 bits
     """
@@ -203,6 +219,12 @@ def converttext(plaintext):
     return plaintext
 
 
+def strTobytes(plaintext):
+    plaintext = add_space(plaintext)
+    plaintext = generate_bit(plaintext)
+    return plaintext
+
+
 def DES_encrypt(plaintext, key, binary_input: bool = False):
     subkeys = key_generation(key)
     if not binary_input:
@@ -269,20 +291,17 @@ def DES_decrypt(crypt, key, binary_output: bool = False):
         #print(strList(block), len(block))
         #print(type(block[0]))
         if not binary_output:
-            plaintext = plaintext + backToString(strList(block))[2:-1]
+            plaintext = plaintext + str(backTobytes(strList(block)))[2:-1]
         else:
             plaintext = plaintext + strList(block)
     return plaintext
 
 
-def backToString(s: str) -> str:
-    """
-    convert block data back to string
-    """
+def backTobytes(s):
     I_str = []
     for i in range(len(s) // 8):
         I_str.append(int(s[i * 8:(i + 1) * 8], 2))
-    return str(bytes(I_str))
+    return bytes(I_str)
 
 
 def DES3_encrypt(plaintext, key1, key2, key3):
@@ -325,17 +344,35 @@ def DESX_decrypt(e_text, key0, key1, key2):
     f_e_text = DESX_xor(e_text, key2, True)
     plaintest = DES_decrypt(f_e_text, key1, True)
     f_plaintext = DESX_xor(plaintest, key0, True)
-    print(backToString(f_plaintext)[2:-1])
+    print(str(backTobytes(f_plaintext)[2:-1]))
+
+
+def DES_encrypt_file(path, key, outfilename='a.out'):
+    e = DES_encrypt(readFile(path), key, True)
+    file = open(outfilename, 'wb')
+    file.write(backTobytes(e))
+    file.close()
+
+
+def DES_decrypt_file(path, key, outfilename):
+    p = DES_decrypt(readFile(path), key, True)
+    file = open(outfilename, 'wb')
+    file.write(backTobytes(p))
+    file.close()
 
 
 if __name__ == "__main__":
-    #print('E_text', DES_encrypt('I\'m Feeling Lucky!', '42234abc1'))
-    #print(
-    #    DES_decrypt(DES_encrypt('I\'m Feeling Lucky!', '42234abc1'),
-    #                '42234abc1'), )
-    x = DESX_encrypt('Hello, World!', 11111111, 22222222, 33333333)
-    DESX_decrypt(x, 11111111, 22222222, 33333333)
+    print('E_text', DES_encrypt('I\'m Feeling Lucky!', '42234abc1'))
+    print(
+        DES_decrypt(DES_encrypt('I\'m Feeling Lucky!', '42234abc1'),
+                    '42234abc1'), )
+    #x = DESX_encrypt('Hello, World!', 11111111, 22222222, 33333333)
+    #DESX_decrypt(x, 11111111, 22222222, 33333333)
     #d1 = DES3_decrypt(e_text, 33333333, 22222222, 11111111)
     #print(e_text)
     #print(d1)
     #print(generate_bit('abc'), len(generate_bit('abc')))
+    #DES_encrypt_file(
+    #    './evolving_google_identity_2x.max-4000x2000.jpegquality-90.jpg',
+    #    11111111)
+    #DES_decrypt_file('./a.out', 11111111, 'out.jpg')
