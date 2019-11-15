@@ -1,4 +1,4 @@
 {
-    "python.pythonPath": "/home/arpit/miniconda3/bin/python",
+    "python.pythonPath": "/home/arpit/miniconda3/envs/base38/bin/python",
     "python.formatting.provider": "yapf"
 }

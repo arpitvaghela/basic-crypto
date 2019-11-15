@@ -20,19 +20,17 @@ def generate_bit(text: str) -> List[str]:
     text = list(bytes(str(text), 'utf-8'))
     b_text = []
     for x in text:
-        #code here
         b = bin(x)[2:]
         if len(b) < 8:
             for _ in range(8 - len(b)):
                 b = '0' + b
-        #print(len(b), b)
         byte = list(b)
         for bit in byte:
             b_text.append(bit)
     return b_text
 
 
-def readFile(path: str):
+def readFile(path: str) -> list:
     with open(path, 'rb') as file:
         b_file = list(file.read())
         b_text = []
@@ -41,7 +39,6 @@ def readFile(path: str):
             if len(b) < 8:
                 for _ in range(8 - len(b)):
                     b = '0' + b
-            #print(len(b), b)
             byte = list(b)
             for bit in byte:
                 b_text.append(bit)
@@ -86,7 +83,6 @@ def subkey_generation(b_key: List[str]) -> List[List[str]]:
     subkeys = []
     for i in range(16):
         subkeys.append(bit_rotation(shift[i], b_key))
-        #printList(subkeys[i])
         permutation(subkeys[i], Table.PC2)
         subkeys[i] = subkeys[i][:48]
     return subkeys
@@ -106,8 +102,6 @@ def key_generation(key: str) -> List[List[str]]:
     b_key = permutation(b_key, Table.PC1)
     #key length to 56
     b_key = b_key[:56]
-
-    #print(b_key, len(b_key))
     subkey = subkey_generation(b_key)
     return subkey
 
@@ -157,11 +151,9 @@ def s_box_replacement(right: List[str]) -> List[str]:
     for x in range(len(r)):
         r[x] = Table.S_box[x][binList(r[x])]
         r[x] = intTObin(r[x])
-        #printList(r[x])
     for x in r[1:]:
         for b in x:
             r[0].append(b)
-    #print(r[0], len(r[0]))
     return r[0]
 
 
@@ -172,12 +164,7 @@ def strtobin_list(str1: list) -> List[int]:
 
 
 def fnc(right: list, subkey: list) -> List[int]:
-    #print('func:')
-
     e_right = extend_right(right)
-    #printList(right)
-    #print('e_right')
-    #printList(e_right)
     r = []
     for i in range(len(e_right)):
         e_right[i] = int(e_right[i])
@@ -187,14 +174,8 @@ def fnc(right: list, subkey: list) -> List[int]:
 
     for i in range(len(subkey)):
         r.append(e_right[i] ^ subkey[i])
-    #print('xor with subkey')
-    #printList(r)
     r = s_box_replacement(r)
-    #print('s_box')
-    #printList(r)
     r = permutation(r, Table.P)
-    #print('permute')
-    #printList(r)
     return r
 
 
@@ -215,54 +196,38 @@ def add_space(plaintext: str) -> str:
     return plaintext
 
 
-def converttext(plaintext):
-    return plaintext
-
-
-def strTobytes(plaintext):
+def strTobytes(plaintext: str) -> list:
     plaintext = add_space(plaintext)
     plaintext = generate_bit(plaintext)
     return plaintext
 
 
-def DES_encrypt(plaintext, key, binary_input: bool = False):
+def DES_encrypt(plaintext: str, key) -> list:
     subkeys = key_generation(key)
-    if not binary_input:
-        plaintext = add_space(plaintext)
-        plaintext = generate_bit(plaintext)
-    else:
-        plain_list = []
-        for x in plaintext:
-            plain_list.append(x)
-        plaintext = plain_list
+    plain_list = []
+    for x in plaintext:
+        plain_list.append(x)
+    plaintext = plain_list
     blocks = []
     #create blocks
     for i in range(len(plaintext) // 64):
         blocks.append(plaintext[i * 64:(i + 1) * 64])
-    #printList(blocks)
-    encrypt_blocks = ''
+    encrypt_blocks = []
     for block in blocks:
-        #print('Start:')
-        #printList(block)
         block = permutation(block, Table.IP)
-        #print('IP:')
-        #printList(block)
         for i in range(16):
             left = block[:32].copy()
             right = block[32:].copy()
             block[:32] = right
             block[32:] = xor_list(strtobin_list(left),
                                   strtobin_list(fnc(right, subkeys[i])))
-            #print('round', i)
-            #printList(block)
         block = permutation(block, Table.IP_inv)
-        #print('IP_inv:')
-        #print(strList(block), len(block))
-        encrypt_blocks = encrypt_blocks + strList(block)
+        for x in block:
+            encrypt_blocks.append(x)
     return encrypt_blocks
 
 
-def DES_decrypt(crypt, key, binary_output: bool = False):
+def DES_decrypt(crypt: list, key) -> list:
     subkeys = key_generation(key)
     blocks = []
     for i in range(len(crypt) // 64):
@@ -270,107 +235,122 @@ def DES_decrypt(crypt, key, binary_output: bool = False):
         for x in range(64):
             block.append(crypt[i * 64 + x])
         blocks.append(block)
-    plaintext = ''
-    #print(blocks, len(blocks))
+    plaintext = []
     for block in blocks:
-        #print('D_Start:')
-        #printList(block)
         block = permutation(block, Table.IP)
-        #print('D-IP:')
-        #printList(block)
         for i in range(16):
             left = block[:32].copy()
             right = block[32:].copy()
             block[32:] = left
             block[:32] = xor_list(strtobin_list(right),
                                   strtobin_list(fnc(left, subkeys[15 - i])))
-            #print('D_round', 15 - i)
-            #printList(block)
         block = permutation(block, Table.IP_inv)
-        #print('D_IP_inv:')
-        #print(strList(block), len(block))
-        #print(type(block[0]))
-        if not binary_output:
-            plaintext = plaintext + str(backTobytes(strList(block)))[2:-1]
-        else:
-            plaintext = plaintext + strList(block)
+        for x in block:
+            plaintext.append(x)
     return plaintext
 
 
-def backTobytes(s):
+def backTobytes(s: str) -> bytes:
     I_str = []
     for i in range(len(s) // 8):
-        I_str.append(int(s[i * 8:(i + 1) * 8], 2))
+        I_str.append(int(strList(s[i * 8:(i + 1) * 8]), 2))
     return bytes(I_str)
 
 
-def DES3_encrypt(plaintext, key1, key2, key3):
-    return DES_encrypt(DES_decrypt(DES_encrypt(plaintext, key1), key2, True),
-                       key3, True)
+def DES3_encrypt(plaintext: str, key1, key2, key3) -> list:
+    return DES_encrypt(DES_decrypt(DES_encrypt(plaintext, key1), key2), key3)
 
 
-def DES3_decrypt(e_text, key1, key2, key3):
-    return DES_decrypt(
-        DES_encrypt(DES_decrypt(e_text, key3, True), key2, True), key1)
+def DES3_decrypt(e_text: list, key1, key2, key3) -> list:
+    return DES_decrypt(DES_encrypt(DES_decrypt(e_text, key3), key2), key1)
 
 
-def DESX_xor(text, key, after_DESX_encrypt: bool = False):
+def DESX_xor(text: str, key) -> list:
     key = strtobin_list(generate_bit(key))[:64]
-    if after_DESX_encrypt:
-        b_text = []
-        for x in text:
-            b_text.append(int(x))
-    else:
-        b_text = strtobin_list(generate_bit(text))
+    b_text = []
+    for x in text:
+        b_text.append(int(x))
 
-    final_text = ''
+    final_text = []
     for i in range(len(b_text) // 64):
         x1 = xor_list(b_text[i * 64:(i + 1) * 64], key)
         for x in x1:
-            final_text = final_text + str(x)
+            final_text.append(x)
     return final_text
 
 
-def DESX_encrypt(plaintext, key0, key1, key2):
-    plaintext = add_space(plaintext)
+def DESX_encrypt(plaintext: str, key0, key1, key2) -> list:
     final_plaintext = DESX_xor(plaintext, key0)
-    e_text = DES_encrypt(final_plaintext, key1, True)
-    final_e_text = DESX_xor(e_text, key2, True)
-    #print(final_e_text, len(final_e_text))
+    e_text = DES_encrypt(final_plaintext, key1)
+    final_e_text = DESX_xor(e_text, key2)
     return final_e_text
 
 
-def DESX_decrypt(e_text, key0, key1, key2):
-    f_e_text = DESX_xor(e_text, key2, True)
-    plaintest = DES_decrypt(f_e_text, key1, True)
-    f_plaintext = DESX_xor(plaintest, key0, True)
-    print(str(backTobytes(f_plaintext)[2:-1]))
+def DESX_decrypt(e_text: list, key0, key1, key2) -> list:
+    f_e_text = DESX_xor(e_text, key2)
+    plaintest = DES_decrypt(f_e_text, key1)
+    f_plaintext = DESX_xor(plaintest, key0)
+    return f_plaintext
 
 
-def DES_encrypt_file(path, key, outfilename='a.out'):
-    e = DES_encrypt(readFile(path), key, True)
+def DES_encrypt_file(path: str, key, outfilename: str = 'a.out') -> None:
+    e = DES_encrypt(readFile(path), key)
     with open(outfilename, 'wb') as file:
         file.write(backTobytes(e))
-    # file.close()
 
 
-def DES_decrypt_file(path, key, outfilename):
-    p = DES_decrypt(readFile(path), key, True)
+def DES_decrypt_file(path: str, key, outfilename: str) -> None:
+    p = DES_decrypt(readFile(path), key)
     with open(outfilename, 'wb') as file:
         file.write(backTobytes(p))
-    # file.close()
 
+
+def DES3_encrypt_file(path: str, key1, key2, key3,
+                      outfilename: str = 'a.out') -> None:
+    e = DES3_encrypt(readFile(path), key1, key2, key3)
+    with open(outfilename, 'wb') as file:
+        file.write(backTobytes(e))
+
+
+def DES3_decrypt_file(path: str, key1, key2, key3, outfilename: str) -> None:
+    p = DES3_decrypt(readFile(path), key1, key2, key3)
+    with open(outfilename, 'wb') as file:
+        file.write(backTobytes(p))
+
+
+def DESX_encrypt_file(path: str, key1, key2, key3,
+                      outfilename: str = 'a.out') -> None:
+    e = DESX_encrypt(readFile(path), key1, key2, key3)
+    with open(outfilename, 'wb') as file:
+        file.write(backTobytes(e))
+
+
+def DESX_decrypt_file(path: str, key1, key2, key3, outfilename: str) -> None:
+    p = DESX_decrypt(readFile(path), key1, key2, key3)
+    with open(outfilename, 'wb') as file:
+        file.write(backTobytes(p))
+
+
+def bytesTomsg(msg: list) -> str:
+    return str(backTobytes(msg))[2:-1]
+
+
+#use strTobytes() before passing msg
+#use bytesTomsg() to convert output to string
 
 if __name__ == "__main__":
-    print('E_text', DES_encrypt('I\'m Feeling Lucky!', '42234abc1'))
-    print(
-        DES_decrypt(DES_encrypt('I\'m Feeling Lucky!', '42234abc1'),
-                    '42234abc1'), )
+    e = DESX_encrypt(strTobytes('I\'m Feeling Lucky!'), '42234abc1', 22222222,
+                     333333333)
+    #print('e', e)
+    p = DESX_decrypt(e, '42234abc1', 22222222, 333333333)
+    #print('p', p)
+    print(bytesTomsg(p))
+
     #x = DESX_encrypt('Hello, World!', 11111111, 22222222, 33333333)
     #DESX_decrypt(x, 11111111, 22222222, 33333333)
     #d1 = DES3_decrypt(e_text, 33333333, 22222222, 11111111)
     #print(e_text)
     #print(d1)
     #print(generate_bit('abc'), len(generate_bit('abc')))
-    #DES_encrypt_file('./download.png', 11111111)
-    #DES_decrypt_file('./a.out', 11111111, 'out.jpg')
+    #DESX_encrypt_file('./download.jpeg', 11111111, 222222222, 3333333333)
+    #DESX_decrypt_file('./a.out', 11111111, 222222222, 3333333333, 'out.jpeg')
