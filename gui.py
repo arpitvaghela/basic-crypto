@@ -1,10 +1,11 @@
 from tkinter import *
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox, font
 import DES, ceasar, playfair
 
 root = Tk()
-root.geometry('1024x640')
+root.geometry('900x600')
 welcomeMsg = "Welcome to Basic-Crypto"
+appFont = font.Font(family='Helvetica', size=16, weight='bold')
 
 # variables
 cipher_values = {"DES": 1, "DES3": 2, "DESX": 3, "ceasar": 4, "playfair": 5}
@@ -21,25 +22,27 @@ plaintext = StringVar()
 e_text = StringVar()
 
 # widgets
-L_welcome = ttk.Label(root, text=welcomeMsg)
+L_welcome = ttk.Label(root, text=welcomeMsg, font=appFont, justify="center")
 #key layer
 L_key = ttk.Label(root, text="Key:")
-E_k1 = ttk.Entry(root, textvariable=key1)
-E_k2 = ttk.Entry(root, textvariable=key2)
-E_k3 = ttk.Entry(root, textvariable=key3)
+E_k1 = ttk.Entry(root, textvariable=key1, width=10)
+E_k2 = ttk.Entry(root, textvariable=key2, width=10)
+E_k3 = ttk.Entry(root, textvariable=key3, width=10)
 
 
 #callback by cipher select
 def cipher_callback():
     if cipherSelect.get() == 2 or cipherSelect.get() == 3:
-        E_k2.grid(row=2, column=3, columnspan=2)
-        E_k3.grid(row=2, column=5, columnspan=2)
+        E_k2.grid(row=2, column=5, columnspan=2, sticky='E')
+        E_k3.grid(row=2, column=7, columnspan=2, sticky='E')
     else:
         E_k2.grid_remove()
         E_k3.grid_remove()
     if cipherSelect.get() == 4 or cipherSelect.get() == 5:
-        datatype_radioframe.grid(row=3, column=1, columnspan=3)
+        L_dataType.grid(row=3, column=1, columnspan=2, sticky='E')
+        datatype_radioframe.grid(row=3, column=3, columnspan=2, sticky='E')
     else:
+        L_dataType.grid_remove()
         datatype_radioframe.grid_remove()
         data_type.set(2)
         datatype_callback()
@@ -65,10 +68,10 @@ L_e_text = ttk.Label(root, text="Encrypted Text")
 #callback by datatype select
 def datatype_callback():
     if data_type.get() == 1:
-        T_plaintext.grid(row=4, column=0, columnspan=4)
-        T_e_text.grid(row=4, column=4, columnspan=4)
-        L_plaintext.grid(row=5, column=1)
-        L_e_text.grid(row=5, column=5)
+        T_plaintext.grid(row=4, column=1, columnspan=5)
+        T_e_text.grid(row=4, column=7, columnspan=5)
+        L_plaintext.grid(row=5, column=3)
+        L_e_text.grid(row=5, column=10)
 
     else:
         T_plaintext.grid_remove()
@@ -242,16 +245,15 @@ btn_e = ttk.Button(root, text="Encrypt", command=e_callback)
 btn_d = ttk.Button(root, text="Decrypt", command=d_callback)
 
 #grid manager
-L_welcome.grid()
+L_welcome.grid(columnspan=10, padx=100, pady=30)
+L_cipher.grid(row=1, column=1, columnspan=2, sticky='E', padx=100, pady=20)
+radioframe.grid(row=1, column=3, columnspan=5, pady=20)
+L_key.grid(row=2, column=1, columnspan=2, sticky='E', padx=100, pady=20)
+E_k1.grid(row=2, column=3, columnspan=2, sticky='E', pady=20)
 
-L_cipher.grid(row=1)
-radioframe.grid(row=1, column=1, columnspan=5)
-L_key.grid(row=2)
-E_k1.grid(row=2, column=1)
+#L_dataType.grid(row=3, column=1, columnspan=2, sticky='E')
 
-L_dataType.grid(row=3)
-
-btn_e.grid(row=7, column=2)
-btn_d.grid(row=7, column=4)
+btn_e.grid(row=7, column=4, pady=20)
+btn_d.grid(row=7, column=7, pady=20)
 
 root.mainloop()
